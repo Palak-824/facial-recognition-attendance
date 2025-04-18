@@ -6,11 +6,14 @@
 *.png
 *.jpg
 *.jpeg
+FRAS/captured_image/*.jpg
 
 # Ignore Excel files
 *.xls
 *.xlsx
 *.csv
+FRAS/attendance/*.csv
+FRAS/student_details/*.csv
 
 # Ignore Python bytecode
 __pycache__
