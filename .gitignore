@@ -10,6 +10,7 @@
 # Ignore Excel files
 *.xls
 *.xlsx
+*.csv
 
 # Ignore Python bytecode
 __pycache__

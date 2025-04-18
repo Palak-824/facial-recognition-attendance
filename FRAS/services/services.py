@@ -573,7 +573,7 @@ def att(tv):
     i = 0
     j = 0
     ts = time.time()
-    date = datetime.fromtimestamp(ts).strftime('%d-%m-%Y')
+    date = datetime.datetime.fromtimestamp(ts).strftime('%d-%m-%Y')
     exists = os.path.isfile("attendance/attendance_" + date + ".csv")
     attendance_file = f"attendance/attendance_{date}.csv"
     # try:
@@ -666,7 +666,6 @@ def contact():
 # ======================== MANUAL ENTRY =================================
 
 from tkinter import messagebox, simpledialog
-from datetime import datetime
 
 def verify_admin_password():
     password = simpledialog.askstring("Admin Authentication", "Enter Admin Password:", show='*')

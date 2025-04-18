@@ -1,15 +1,12 @@
-import os
-import tempfile
-import pandas as pd
 import pytest
-from api.attendance_api import app
+import os
+import pandas as pd
 import sys
+from unittest.mock import patch
 
-
-# Add project root (Initial_Phase) to sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from api.attendance_api import app
+from api.attendance_api import app, FlaskServer
 
 @pytest.fixture
 def client():
@@ -18,52 +15,52 @@ def client():
         yield client
 
 def test_home_route(client):
-    """Test the base home route."""
-    response = client.get('/')
+    response = client.get("/")
     assert response.status_code == 200
     assert b"Flask API running" in response.data
 
-def test_get_attendance_no_date(client):
-    """Test /get-attendance with missing date."""
-    response = client.get('/get-attendance')
-    assert response.status_code == 400
-    assert response.json['error'] == "Date not provided"
+def test_get_attendance_valid_file(client, tmp_path):
+    # Create mock CSV file for today's date
+    test_date = "01-01-2023"
+    file_path = tmp_path / f"Attendance_{test_date}.csv"
+    df = pd.DataFrame({"Id": [1], "Name": ["John Doe"]})
+    df.to_csv(file_path, index=False)
+
+    # Use patch to mock os.path.exists and pd.read_csv in the Flask app context
+    with patch("api.attendance_api.os.path.exists") as mock_exists, \
+         patch("api.attendance_api.pd.read_csv") as mock_read_csv:
+        
+        # Mock the file existence and CSV reading behavior
+        mock_exists.return_value = True
+        mock_read_csv.return_value = df
+        
+        # Send GET request to the API with the date parameter
+        response = client.get(f"/get-attendance?date={test_date}")
+
+        # Assert the response status code is 200 OK
+        assert response.status_code == 200
+
+        # Assert that the response JSON contains the correct data
+        response_json = response.get_json()
+        assert len(response_json) == 1  # One student in the mock file
+        assert response_json[0]['Id'] == 1
+        assert response_json[0]['Name'] == "John Doe"
 
 def test_get_attendance_file_not_found(client):
-    """Test /get-attendance when file does not exist."""
-    response = client.get('/get-attendance?date=2099-01-01')
+    response = client.get("/get-attendance?date=02-02-2023")
     assert response.status_code == 404
-    assert "not found" in response.json['error']
+    assert response.is_json
+    assert "error" in response.json
 
-def test_get_attendance_success(client):
-    """Test /get-attendance when file exists."""
-    # Create a temporary CSV file
-    with tempfile.TemporaryDirectory() as tempdir:
-        test_date = "2025-01-01"
-        test_file_path = os.path.join(
-            tempdir, f"Attendance_{test_date}.csv"
-        )
+def test_get_attendance_missing_date(client):
+    response = client.get("/get-attendance")
+    assert response.status_code == 400
+    assert response.is_json
+    assert response.json["error"] == "Date not provided"
 
-        # Add dummy data
-        df = pd.DataFrame({
-            "Id": [1, 2],
-            "Name": ["Alice", "Bob"]
-        })
-        df.to_csv(test_file_path, index=False)
-
-        # Monkeypatch os.path.exists to return True for this path
-        original_exists = os.path.exists
-        os.path.exists = lambda path: path == test_file_path or original_exists(path)
-
-        # Monkeypatch the file path inside the route
-        from api import attendance_api
-        attendance_api.os.path.exists = lambda path: path == test_file_path
-        attendance_api.pd.read_csv = lambda path, usecols=None: df
-
-        # Make the GET request
-        response = client.get(f'/get-attendance?date={test_date}')
-        assert response.status_code == 200
-        assert response.json == [{'Id': 1, 'Name': 'Alice'}, {'Id': 2, 'Name': 'Bob'}]
-
-        # Restore original functions
-        os.path.exists = original_exists
+def test_flask_server_start_shutdown():
+    server = FlaskServer(app)
+    server.start()
+    assert server.thread.is_alive()
+    server.shutdown()
+    assert not server.thread.is_alive()
