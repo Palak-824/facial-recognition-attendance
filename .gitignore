@@ -1,0 +1,21 @@
+# Ignore log files
+*.log
+
+# Ignore image files (logo and gif)
+*.gif
+*.png
+*.jpg
+*.jpeg
+
+# Ignore Excel files
+*.xls
+*.xlsx
+
+# Ignore Python bytecode
+__pycache__
+*.pyc
+*.pyo
+
+# Ignore virtual environment
+venv/
+env/
