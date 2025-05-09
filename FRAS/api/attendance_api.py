@@ -37,7 +37,7 @@ def get_attendance():
         return jsonify({"error": "Date not provided"}), 400
 
     # Construct the file name based on the date
-    file_name = f"D:\\palak\\Relictome3\\Relictome3\\Relictome2\\Relictome\\Initial_Phase\\Attendance\\Attendance_{selected_date}.csv"
+    file_name = f"attendance\\attendance_{selected_date}.csv"
     
     if os.path.exists(file_name):
         # Read the CSV file using pandas
@@ -49,6 +49,3 @@ def get_attendance():
         return jsonify(data)
     else:
         return jsonify({"error": f"Attendance file for {selected_date} not found"}), 404
-
-# if __name__ == "__main__":
-#     app.run(host="127.0.0.1", port=5000, debug=False, use_reloader=False)

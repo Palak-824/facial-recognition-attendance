@@ -256,7 +256,7 @@ def TrackImages(window, tv):
     faceCascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
     cam = cv2.VideoCapture(Video_Index)  # Ensure correct camera index
     font = cv2.FONT_HERSHEY_SIMPLEX
-    col_names = ['Id', '', 'Name', '', 'Date', '', 'Intime', '', 'Outtime']
+    col_names = ['Id', 'Name', 'Date', 'Intime', 'Outtime']
 
     if not os.path.isfile("student_details/student_details.csv"):
         mess._show(title='Details Missing', message='Employees details are missing, please check!')
@@ -301,7 +301,7 @@ def TrackImages(window, tv):
                 if ID in attendance_data:
                     attendance_data[ID][-1] = curtime  # Update outtime
                 else:
-                    new_record = [str(ID), '', bb, '', date, '', curtime, curtime]
+                    new_record = [str(ID), bb, date, curtime, curtime]
                     attendance_data[ID] = new_record
 
                 cv2.putText(im, f"ID: {ID} Name: {bb}", (x, y + h), font, 1, (255, 255, 255), 2)
@@ -351,7 +351,7 @@ def show_attendance():
 
         try:
             response = requests.get(api_url)
-
+            
             if response.status_code == 200:
                 attendance_data = response.json()
                 if attendance_data:
@@ -389,87 +389,87 @@ def show_attendance():
 # Add the function show_attendance to a button or menu as needed
 
 
-def show_attendance1():
-    def get_date():
-        """Fetch the selected date from the calendar and close the window"""
-        selected_date = cal.get_date()
-        top.destroy()
-        fetch_attendance(selected_date)
+# def show_attendance1():
+#     def get_date():
+#         """Fetch the selected date from the calendar and close the window"""
+#         selected_date = cal.get_date()
+#         top.destroy()
+#         fetch_attendance(selected_date)
 
-    # def fetch_attendance(formatted_date):
-    #     """Calls the API to get attendance data and displays it"""
-    #     api_url = f"http://127.0.0.1:5000/get-attendance?date={formatted_date}"
+#     # def fetch_attendance(formatted_date):
+#     #     """Calls the API to get attendance data and displays it"""
+#     #     api_url = f"http://127.0.0.1:5000/get-attendance?date={formatted_date}"
 
-    #     try:
-    #         response = requests.get(api_url)
+#     #     try:
+#     #         response = requests.get(api_url)
 
-    #         if response.status_code == 200:
-    #             attendance_data = response.json()
-    #             if attendance_data:
-    #                 display_attendance(pd.DataFrame(attendance_data).to_string(index=False))
-    #             else:
-    #                 display_attendance(f"No records found for {formatted_date}")
-    #         else:
-    #             display_attendance(f"API Call Failed: {response.status_code} - {response.text}")
+#     #         if response.status_code == 200:
+#     #             attendance_data = response.json()
+#     #             if attendance_data:
+#     #                 display_attendance(pd.DataFrame(attendance_data).to_string(index=False))
+#     #             else:
+#     #                 display_attendance(f"No records found for {formatted_date}")
+#     #         else:
+#     #             display_attendance(f"API Call Failed: {response.status_code} - {response.text}")
 
-    #     except requests.exceptions.RequestException as e:
-    #         display_attendance(f"Error making API call: {e}")
+#     #     except requests.exceptions.RequestException as e:
+#     #         display_attendance(f"Error making API call: {e}")
 
-    def fetch_attendance(formatted_date):
-        """Calls the API to get attendance data and displays it"""
-        api_url = f"http://127.0.0.1:5000/get-attendance?date={formatted_date}"
+#     def fetch_attendance(formatted_date):
+#         """Calls the API to get attendance data and displays it"""
+#         api_url = f"http://127.0.0.1:5000/get-attendance?date={formatted_date}"
 
-        try:
-            # Attempt to make the request
-            response = requests.get(api_url)
+#         try:
+#             # Attempt to make the request
+#             response = requests.get(api_url)
 
-            if response.status_code == 200:
-                attendance_data = response.json()
-                if attendance_data:
-                    display_attendance(pd.DataFrame(attendance_data).to_string(index=False))
-                else:
-                    display_attendance(f"No records found for {formatted_date}")
-            else:
-                display_attendance(f"API Call Failed: {response.status_code} - {response.text}")
+#             if response.status_code == 200:
+#                 attendance_data = response.json()
+#                 if attendance_data:
+#                     display_attendance(pd.DataFrame(attendance_data).to_string(index=False))
+#                 else:
+#                     display_attendance(f"No records found for {formatted_date}")
+#             else:
+#                 display_attendance(f"API Call Failed: {response.status_code} - {response.text}")
 
-        except requests.exceptions.RequestException as e:
-            # This block will catch all request-related errors (like connection issues)
-            error_message = f"Error making API call: {e}"
+#         except requests.exceptions.RequestException as e:
+#             # This block will catch all request-related errors (like connection issues)
+#             error_message = f"Error making API call: {e}"
 
-            # If the error is a connection issue (like the server is not running), show a specific message
-            if 'Failed to establish a new connection' in str(e):
-                error_message = "The server is not running. Please make sure the backend API server is active."
+#             # If the error is a connection issue (like the server is not running), show a specific message
+#             if 'Failed to establish a new connection' in str(e):
+#                 error_message = "The server is not running. Please make sure the backend API server is active."
 
-            display_attendance(error_message)
+#             display_attendance(error_message)
 
 
-    def display_attendance(data):
-        """Displays attendance data in a new Tkinter window"""
-        result_window = tk.Toplevel()
-        result_window.title("Attendance Data")
+#     def display_attendance(data):
+#         """Displays attendance data in a new Tkinter window"""
+#         result_window = tk.Toplevel()
+#         result_window.title("Attendance Data")
 
-        text_widget = tk.Text(result_window, wrap="word", width=80, height=20)
-        text_widget.insert("1.0", data)
-        text_widget.pack(padx=10, pady=10)
+#         text_widget = tk.Text(result_window, wrap="word", width=80, height=20)
+#         text_widget.insert("1.0", data)
+#         text_widget.pack(padx=10, pady=10)
 
-        btn_close = tk.Button(result_window, text="Close", command=result_window.destroy)
-        btn_close.pack(pady=5)
+#         btn_close = tk.Button(result_window, text="Close", command=result_window.destroy)
+#         btn_close.pack(pady=5)
 
-    # Create a pop-up window for date selection
-    top = tk.Toplevel()
-    top.title("Select Date")
+#     # Create a pop-up window for date selection
+#     top = tk.Toplevel()
+#     top.title("Select Date")
 
-    cal = Calendar(top, selectmode="day", date_pattern="dd-mm-yyyy")
-    cal.pack(pady=20)
+#     cal = Calendar(top, selectmode="day", date_pattern="dd-mm-yyyy")
+#     cal.pack(pady=20)
 
-    btn_select = tk.Button(top, text="OK", command=get_date)
-    btn_select.pack(pady=10)
+#     btn_select = tk.Button(top, text="OK", command=get_date)
+#     btn_select.pack(pady=10)
 
 
 
 # def TrackImages(window, tv):
 #     check_haarcascadefile(window)
-#     assure_path_exists("Attendance/")
+#     assure_path_exists("attendance/")
 #     assure_path_exists("student_details/")
 
 #     for k in tv.get_children():
@@ -484,7 +484,7 @@ def show_attendance1():
 #     faceCascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
 #     cam = cv2.VideoCapture(Video_Index)  # Ensure correct camera index
 #     font = cv2.FONT_HERSHEY_SIMPLEX
-#     col_names = ['Id', '', 'Name', '', 'Date', '', 'Intime', '', 'Outtime']
+#     col_names = ['Id', 'Name', 'Date', 'Intime', 'Outtime']
 
 #     if not os.path.isfile("student_details/student_details.csv"):
 #         mess._show(title='Details Missing', message='Employees details are missing, please check!')
@@ -566,7 +566,7 @@ def show_attendance1():
 
 #################################################################################
 def att(tv):
-    col_names = ['Id', '', 'Name', '', 'Date', '', 'InTime','OutTime']
+    col_names = ['Id', 'Name', 'Date', 'InTime', 'OutTime']
     for k in tv.get_children():
         tv.delete(k)
     msg = ''
@@ -602,11 +602,15 @@ def att(tv):
     tv.tag_configure('gray', background="#ebf7bc")
     tv.tag_configure('green', background="#cfec9a")
 #################################################################################
+
 def ch(j,tv,iidd,lines):
     if j % 2==0:
-        tv.insert('', 0, text=iidd, values=(str(lines[2]), str(lines[4]), str(lines[6]),str(lines[7])),tags=['gray'])
+        tv.insert('', 0, text=iidd, 
+                values=(str(lines[1]), str(lines[2]), str(lines[3]), str(lines[4])), tags=['gray'])
     else:
-        tv.insert('', 0, text=iidd, values=(str(lines[2]), str(lines[4]), str(lines[6]),str(lines[7])),tags=['green'])
+        tv.insert('', 0, text=iidd,
+                values=(str(lines[1]), str(lines[2]), str(lines[3]), str(lines[4])), tags=['green'])
+
 ##################################################################################
 def psw_quit(window):
     assure_path_exists("training_image_pro/")
@@ -680,7 +684,7 @@ def manual_attendance_entry(root, callback=None):
     manual_window.title("Manual Attendance Entry")
     
     # Store selected date
-    selected_date = tk.StringVar(value=datetime.now().strftime("%Y-%m-%d"))
+    selected_date = tk.StringVar(value=datetime.datetime.now().strftime("%d-%m-%Y"))
     
     # ID Entry
     tk.Label(manual_window, text="Student ID:").grid(row=0, column=0, padx=10, pady=5)
@@ -699,7 +703,7 @@ def manual_attendance_entry(root, callback=None):
             top.destroy()
         
         top = tk.Toplevel(manual_window)
-        cal = Calendar(top, selectmode='day', date_pattern='yyyy-mm-dd')
+        cal = Calendar(top, selectmode='day', date_pattern='dd-mm-yyyy')
         cal.pack(padx=10, pady=10)
         tk.Button(top, text="Select Date", command=set_date).pack(pady=10)
     
@@ -716,22 +720,22 @@ def manual_attendance_entry(root, callback=None):
     def submit():
         student_id = id_entry.get()
         name = name_entry.get()
-        date_str = datetime.fromtimestamp(ts).strftime('%d-%m-%Y')
+        date_str = datetime.datetime.fromtimestamp(ts).strftime('%d-%m-%Y')
         
         if not all([student_id, name]):
             messagebox.showerror("Error", "Student ID and Name are required!")
             return
         
         try:
-            current_time = datetime.now().strftime("%H:%M:%S")
-            filename = f"Attendance/Attendance_{date_str}.csv"
+            current_time = datetime.datetime.now().strftime("%H:%M:%S")
+            filename = f"attendance/attendance_{date_str}.csv"
             
             os.makedirs("Attendance", exist_ok=True)
             
             try:
                 df = pd.read_csv(filename)
             except FileNotFoundError:
-                df = pd.DataFrame(columns=['Id', '', 'Name', '', 'Date', '', 'Intime', 'Outtime'])
+                df = pd.DataFrame(columns=['Id', 'Name', 'Date', 'Intime', 'Outtime'])
             
             mask = (df['Id'].astype(str).str.lower() == student_id.lower()) & (df['Date'].astype(str) == date_str)
             
