@@ -355,216 +355,50 @@ def show_attendance():
             if response.status_code == 200:
                 attendance_data = response.json()
                 if attendance_data:
-                    display_attendance(pd.DataFrame(attendance_data).to_string(index=False))
+                    display_attendance(attendance_data, formatted_date)
                 else:
-                    display_attendance(f"No records found for {formatted_date}")
+                    display_attendance([], formatted_date)
+
             else:
-                display_attendance(f"API Call Failed: {response.status_code} - {response.text}")
+                # display_attendance(f"API Call Failed: {response.status_code} - {response.text}")
+                display_attendance(f"No records found for {date}")
 
         except requests.exceptions.RequestException as e:
             display_attendance(f"Error making API call: {e}")
 
-    def display_attendance(data):
+    def display_attendance(data, date):
         """Displays attendance data in a new Tkinter window"""
         result_window = tk.Toplevel()
-        result_window.title("Attendance Data")
+        result_window.title(f"Attendance Data - {date}")
 
-        text_widget = tk.Text(result_window, wrap="word", width=80, height=20)
-        text_widget.insert("1.0", data)
-        text_widget.pack(padx=10, pady=10)
+        if not data:
+            tk.Label(result_window, text=f"No records found for {date}").pack(pady=10)
+        else:
+            tree = ttk.Treeview(result_window, columns=('ID', 'Name'), show='headings')
+            tree.heading('ID', text='ID')
+            tree.heading('Name', text='Name')
+            tree.pack(fill='both', expand=True)
 
-        btn_close = tk.Button(result_window, text="Close", command=result_window.destroy)
-        btn_close.pack(pady=5)
+            for record in data:
+                tree.insert("", "end", values=(
+                    record.get('Id', ''),
+                    record.get('Name', '')
+                ))
+
+        tk.Button(result_window, text="Close", command=result_window.destroy).pack(pady=5)
 
     # Create a pop-up window for date selection
     top = tk.Toplevel()
     top.title("Select Date")
 
     cal = Calendar(top, selectmode="day", date_pattern="dd-mm-yyyy")
-    cal.pack(pady=20)
+    cal.pack(padx=20, pady=20)
 
-    btn_select = tk.Button(top, text="OK", command=get_date)
+    btn_select = tk.Button(top, text="Fetch", command=get_date)
     btn_select.pack(pady=10)
 
-# Add the function show_attendance to a button or menu as needed
-
-
-# def show_attendance1():
-#     def get_date():
-#         """Fetch the selected date from the calendar and close the window"""
-#         selected_date = cal.get_date()
-#         top.destroy()
-#         fetch_attendance(selected_date)
-
-#     # def fetch_attendance(formatted_date):
-#     #     """Calls the API to get attendance data and displays it"""
-#     #     api_url = f"http://127.0.0.1:5000/get-attendance?date={formatted_date}"
-
-#     #     try:
-#     #         response = requests.get(api_url)
-
-#     #         if response.status_code == 200:
-#     #             attendance_data = response.json()
-#     #             if attendance_data:
-#     #                 display_attendance(pd.DataFrame(attendance_data).to_string(index=False))
-#     #             else:
-#     #                 display_attendance(f"No records found for {formatted_date}")
-#     #         else:
-#     #             display_attendance(f"API Call Failed: {response.status_code} - {response.text}")
-
-#     #     except requests.exceptions.RequestException as e:
-#     #         display_attendance(f"Error making API call: {e}")
-
-#     def fetch_attendance(formatted_date):
-#         """Calls the API to get attendance data and displays it"""
-#         api_url = f"http://127.0.0.1:5000/get-attendance?date={formatted_date}"
-
-#         try:
-#             # Attempt to make the request
-#             response = requests.get(api_url)
-
-#             if response.status_code == 200:
-#                 attendance_data = response.json()
-#                 if attendance_data:
-#                     display_attendance(pd.DataFrame(attendance_data).to_string(index=False))
-#                 else:
-#                     display_attendance(f"No records found for {formatted_date}")
-#             else:
-#                 display_attendance(f"API Call Failed: {response.status_code} - {response.text}")
-
-#         except requests.exceptions.RequestException as e:
-#             # This block will catch all request-related errors (like connection issues)
-#             error_message = f"Error making API call: {e}"
-
-#             # If the error is a connection issue (like the server is not running), show a specific message
-#             if 'Failed to establish a new connection' in str(e):
-#                 error_message = "The server is not running. Please make sure the backend API server is active."
-
-#             display_attendance(error_message)
-
-
-#     def display_attendance(data):
-#         """Displays attendance data in a new Tkinter window"""
-#         result_window = tk.Toplevel()
-#         result_window.title("Attendance Data")
-
-#         text_widget = tk.Text(result_window, wrap="word", width=80, height=20)
-#         text_widget.insert("1.0", data)
-#         text_widget.pack(padx=10, pady=10)
-
-#         btn_close = tk.Button(result_window, text="Close", command=result_window.destroy)
-#         btn_close.pack(pady=5)
-
-#     # Create a pop-up window for date selection
-#     top = tk.Toplevel()
-#     top.title("Select Date")
-
-#     cal = Calendar(top, selectmode="day", date_pattern="dd-mm-yyyy")
-#     cal.pack(pady=20)
-
-#     btn_select = tk.Button(top, text="OK", command=get_date)
-#     btn_select.pack(pady=10)
-
-
-
-# def TrackImages(window, tv):
-#     check_haarcascadefile(window)
-#     assure_path_exists("attendance/")
-#     assure_path_exists("student_details/")
-
-#     for k in tv.get_children():
-#         tv.delete(k)
-
-#     recognizer = cv2.face.LBPHFaceRecognizer_create()
-#     if not os.path.isfile("training_image_pro/Trainner.yml"):
-#         mess._show(title='Data Missing', message='Please click on Save Profile to reset data!!')
-#         return
-#     recognizer.read("training_image_pro/Trainner.yml")
-
-#     faceCascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
-#     cam = cv2.VideoCapture(Video_Index)  # Ensure correct camera index
-#     font = cv2.FONT_HERSHEY_SIMPLEX
-#     col_names = ['Id', 'Name', 'Date', 'Intime', 'Outtime']
-
-#     if not os.path.isfile("student_details/student_details.csv"):
-#         mess._show(title='Details Missing', message='Employees details are missing, please check!')
-#         cam.release()
-#         cv2.destroyAllWindows()
-#         return
-
-#     df = pd.read_csv("student_details/student_details.csv")
-#     date = datetime.datetime.now().strftime('%d-%m-%Y')
-#     attendance_file = f"attendance/attendance_{date}.csv"
-
-#     # Load existing attendance records into memory
-#     attendance_data = {}
-#     if os.path.isfile(attendance_file):
-#         with open(attendance_file, 'r') as csvFile:
-#             reader = csv.reader(csvFile)
-#             for row in reader:
-#                 if row and row[0] != 'Id':
-#                     attendance_data[row[0]] = row
-
-#     while True:
-#         ret, im = cam.read()
-#         if not ret:
-#             break
-
-#         gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-#         faces = faceCascade.detectMultiScale(gray, 1.1, 5, minSize=(100, 100))
-
-#         for (x, y, w, h) in faces:
-#             cv2.rectangle(im, (x, y), (x + w, y + h), (225, 0, 0), 2)
-#             face_resized = cv2.resize(gray[y:y + h, x:x + w], (200, 200))
-#             serial, conf = recognizer.predict(face_resized)
-
-#             if conf < 60:
-#                 ts = time.time()
-#                 curtime = datetime.datetime.fromtimestamp(ts).strftime('%H:%M:%S')
-#                 aa = df.loc[df['SERIAL NO.'] == serial]['NAME'].values
-#                 ID = df.loc[df['SERIAL NO.'] == serial]['ID'].values
-#                 ID = str(ID).strip("[]")
-#                 bb = str(aa).strip("[]").strip("'")
-
-#                 if ID in attendance_data:
-#                     attendance_data[ID][-1] = curtime  # Update outtime
-#                 else:
-#                     new_record = [str(ID), '', bb, '', date, '', curtime, curtime]
-#                     attendance_data[ID] = new_record
-
-#                 cv2.putText(im, f"ID: {ID} Name: {bb}", (x, y + h), font, 1, (255, 255, 255), 2)
-#             else:
-#                 cv2.putText(im, "Unknown", (x, y + h), font, 1, (255, 255, 255), 2)
-
-#         cv2.imshow('Taking attendance', im)
-
-#         # Update the treeview continuously
-#         for k in tv.get_children():
-#             tv.delete(k)
-#         for record in attendance_data.values():
-#             j = len(tv.get_children()) + 1
-#             iidd = str(record[0]) + '   '
-#             ch(j, tv, iidd, record)
-
-#         tv.tag_configure('gray', background="#ebf7bc")
-#         tv.tag_configure('green', background="#cfec9a")
-
-#         # Write attendance data back to the file
-#         with open(attendance_file, 'w', newline='') as csvFile:
-#             writer = csv.writer(csvFile)
-#             writer.writerow(col_names)
-#             writer.writerows(attendance_data.values())
-
-#         if cv2.waitKey(1) == ord('q'):  # Press 'q' to quit
-#             break
-
-#     cam.release()
-#     cv2.destroyAllWindows()
-
-
-
-
 #################################################################################
+
 def att(tv):
     col_names = ['Id', 'Name', 'Date', 'InTime', 'OutTime']
     for k in tv.get_children():
@@ -576,19 +410,6 @@ def att(tv):
     date = datetime.datetime.fromtimestamp(ts).strftime('%d-%m-%Y')
     exists = os.path.isfile("attendance/attendance_" + date + ".csv")
     attendance_file = f"attendance/attendance_{date}.csv"
-    # try:
-    #     with open("attendance/attendance_" + date + ".csv", 'r') as csvFile1:
-    #         reader1 = csv.reader(csvFile1)
-    #         for lines in reader1:
-    #             i = i + 1
-    #             if (i > 1):
-    #                 if (i % 2 != 0):
-    #                     j+=1
-    #                     iidd = str(lines[0]) + '   '
-    #                     ch(j,tv,iidd,lines)
-    #     csvFile1.close()
-    # except Exception as e:
-    #     mess.showinfo("Oops","No records for today yet")
     existing_records = []
     if os.path.isfile(attendance_file):
         with open(attendance_file, 'r') as csvFile:
@@ -601,6 +422,7 @@ def att(tv):
             ch(j, tv, iidd, record)
     tv.tag_configure('gray', background="#ebf7bc")
     tv.tag_configure('green', background="#cfec9a")
+
 #################################################################################
 
 def ch(j,tv,iidd,lines):
@@ -635,9 +457,6 @@ def psw_quit(window):
     else:
         mess._show(title='Wrong Password', message='You have entered wrong password')
 
-######################################################################################
-
-##################################################################################
 ######################################## USED STUFFS ############################################
     
 global key
@@ -665,7 +484,9 @@ mont={'01':'January',
 
 def contact():
     """Display contact information"""
-    mess._show(title='Contact', message="Please contact: xxxxxxxxxxxxx@gmail.com")
+    mess.showinfo("Contact Support", 
+                "For assistance contact:\nEmail: support@skit.ac.in\nPhone: +91 12345 67890")
+    
 
 # ======================== MANUAL ENTRY =================================
 
@@ -769,3 +590,6 @@ def manual_attendance_entry(root, callback=None):
             traceback.print_exc()
     
     tk.Button(manual_window, text="Submit", command=submit).grid(row=3, columnspan=2, pady=10)
+
+def generate_report():
+    print("report")

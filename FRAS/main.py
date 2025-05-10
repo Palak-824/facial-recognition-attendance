@@ -13,12 +13,6 @@ from api.attendance_api import flask_server  # Import the FlaskServer instance
 # Start Flask server in a new thread
 flask_server.start()
 
-# def start_flask_server():
-#     subprocess.run(['python', 'api\\attendance_api.py'])
-
-# thread = threading.Thread(target=start_flask_server)
-# thread.start()
-
 # Constants
 Video_Index = 0
 COLLEGE_LOGO = "helper_anime\\skit_logo.png"  # Path to college logo
@@ -523,8 +517,8 @@ tv.column('date', width=150, anchor='center')
 tv.column('intime', width=150, anchor='center')
 tv.column('outtime', width=150, anchor='center')
 
-tv.heading('#0', text='ID', anchor='w')
-tv.heading('name', text='STUDENT NAME', anchor='w')
+tv.heading('#0', text='ID', anchor='center')
+tv.heading('name', text='STUDENT NAME', anchor='center')
 tv.heading('date', text='DATE', anchor='center')
 tv.heading('intime', text='IN TIME', anchor='center')
 tv.heading('outtime', text='OUT TIME', anchor='center')
