@@ -364,12 +364,23 @@ def admin():
         tools_buttons_frame,
         text="Manual Entry",
         command=lambda: manual_attendance_entry(window, callback=show_attendance),
-        bg=SECONDARY_COLOR,
+        bg=PRIMARY_COLOR,
         fg=LIGHT_TEXT,
         padx=20
     )
     manual_btn.pack(side='left', padx=10, pady=5)
     changeOnHover(manual_btn, "#5a6268", SECONDARY_COLOR, LIGHT_TEXT, LIGHT_TEXT)
+
+    report_btn = create_rounded_button(
+        tools_buttons_frame,
+        text="Generate attendance report",
+        command=lambda: generate_report(),
+        bg=PRIMARY_COLOR,
+        fg=LIGHT_TEXT,
+        padx=20
+    )
+    report_btn.pack(side='left', padx=10, pady=5)
+    changeOnHover(report_btn, "#5a6268", SECONDARY_COLOR, LIGHT_TEXT, LIGHT_TEXT)
 
 def on_exit():
     if mess.askyesno("Confirm Exit", "Are you sure you want to exit the system?"):

@@ -9,6 +9,8 @@ from PIL import Image
 import pandas as pd
 import datetime
 import time
+from tkcalendar import Calendar
+import requests
 
 Video_Index = 0
 ############################################# FUNCTIONS ################################################
@@ -333,11 +335,6 @@ def TrackImages(window, tv):
     cam.release()
     cv2.destroyAllWindows()
 
-
-from tkcalendar import Calendar
-import requests
-import pandas as pd
-
 def show_attendance():
     def get_date():
         """Fetch the selected date from the calendar and close the window"""
@@ -592,4 +589,160 @@ def manual_attendance_entry(root, callback=None):
     tk.Button(manual_window, text="Submit", command=submit).grid(row=3, columnspan=2, pady=10)
 
 def generate_report():
-    print("report")
+    def calculate_attendance():
+        # Get user inputs
+        selected_month = month_var.get()
+        working_days = tsd.askinteger("Working Days", "Enter total working days:", 
+                                    parent=report_window, minvalue=1)
+        
+        if not working_days or working_days < 1 or working_days > 31:
+            mess.showerror("Error", "Invalid working days input")
+            return
+
+        # Read student details
+        students = {}
+        try:
+            with open('student_details/student_details.csv', 'r') as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    students[row['ID']] = {
+                        'name': row['NAME'],
+                        'present_days': 0
+                    }
+        except FileNotFoundError:
+            mess.showerror("Error", "Student database not found!")
+            return
+
+        # Process attendance files
+        attendance_dir = 'attendance'
+        processed_dates = set()
+        
+        for filename in os.listdir(attendance_dir):
+            if filename.startswith('attendance_') and filename.endswith('.csv'):
+                try:
+                    # Extract date from filename (format: dd-mm-yyyy)
+                    date_str = filename.split('_')[1].split('.')[0]
+                    file_month = date_str.split('-')[1]
+                    
+                    if file_month != selected_month.split('-')[1]:
+                        continue
+                    
+                    # Track unique dates to prevent duplicate processing
+                    if date_str in processed_dates:
+                        continue
+                    processed_dates.add(date_str)
+
+                    # Process daily attendance
+                    with open(os.path.join(attendance_dir, filename), 'r') as file:
+                        reader = csv.DictReader(file)
+                        daily_present = set()
+                        
+                        for row in reader:
+                            student_id = row['Id'].strip()
+                            if student_id in students:
+                                daily_present.add(student_id)
+
+                        # Update present days
+                        for student_id in daily_present:
+                            students[student_id]['present_days'] += 1
+
+                except Exception as e:
+                    print(f"Error processing {filename}: {str(e)}")
+                    continue
+
+        # Create report window
+        result_window = tk.Toplevel(report_window)
+        result_window.title(f"Attendance Report - {selected_month}")
+        result_window.geometry("780x500")
+
+        # Create treeview with scrollbar
+        tree_frame = tk.Frame(result_window)
+        tree_frame.pack(fill='both', expand=True, padx=20, pady=20)
+
+        tree = ttk.Treeview(tree_frame, columns=('ID', 'Name', 'Present', 'Percentage'), show='headings')
+        vsb = ttk.Scrollbar(tree_frame, orient="vertical", command=tree.yview)
+        hsb = ttk.Scrollbar(tree_frame, orient="horizontal", command=tree.xview)
+        tree.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+
+        # Configure columns
+        tree.heading('ID', text='Student ID', anchor='center')
+        tree.heading('Name', text='Name', anchor='w')
+        tree.heading('Present', text='Days Present', anchor='center')
+        tree.heading('Percentage', text='Attendance %', anchor='center')
+        
+        tree.column('ID', width=120, anchor='center')
+        tree.column('Name', width=250, anchor='w')
+        tree.column('Present', width=150, anchor='center')
+        tree.column('Percentage', width=150, anchor='center')
+
+        # Grid layout
+        tree.grid(row=0, column=0, sticky='nsew')
+        vsb.grid(row=0, column=1, sticky='ns')
+        hsb.grid(row=1, column=0, sticky='ew')
+
+        # Add data
+        for student_id, data in students.items():
+            percentage = (data['present_days'] / working_days) * 100 if working_days > 0 else 0
+            tree.insert('', 'end', values=(
+                student_id,
+                data['name'],
+                data['present_days'],
+                f"{percentage:.2f}%"
+            ))
+
+        # Add export button
+        export_btn = ttk.Button(result_window, text="Export to CSV", 
+                              command=lambda: export_report(students, selected_month, working_days))
+        export_btn.pack(pady=10)
+        
+    def export_report(data, month, working_days):
+        # Create directory if it doesn't exist
+        os.makedirs('attendance_report', exist_ok=True)
+        
+        filename = os.path.join('attendance_report', f"Attendance_Report_{month}.csv")
+        with open(filename, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['Student ID', 'Name', 'Days Present', 'Attendance %', 'Working Days'])
+            
+            for student_id, details in data.items():
+                percentage = (details['present_days'] / working_days) * 100 if working_days > 0 else 0
+                writer.writerow([
+                    student_id,
+                    details['name'],
+                    details['present_days'],
+                    f"{percentage:.2f}%",
+                    working_days
+                ])
+        
+        mess.showinfo("Success", f"Report exported as {filename}")
+
+    # Month selection dialog
+    report_window = tk.Toplevel()
+    report_window.title("Generate Monthly Report")
+    
+    # Generate valid months from existing attendance files
+    months = set()
+    for filename in os.listdir('attendance'):
+        if filename.startswith('attendance_'):
+            date_part = filename.split('_')[1].split('.')[0]
+            month_year = f"{date_part.split('-')[2]}-{date_part.split('-')[1]}"  # yyyy-mm format
+            months.add(month_year)
+    
+    if not months:
+        mess.showerror("Error", "No attendance records found!")
+        report_window.destroy()
+        return
+    
+    # GUI elements
+    tk.Label(report_window, text="Select Month (YYYY-MM):", font=('Helvetica', 12)).pack(padx=75, pady=25)
+    
+    month_var = tk.StringVar()
+    month_combo = ttk.Combobox(report_window, 
+                             textvariable=month_var, 
+                             values=sorted(months),
+                             state="readonly",
+                             font=('Helvetica', 12))
+    month_combo.pack(padx=30, pady=20)
+    
+    ttk.Button(report_window, text="Generate Report", 
+             command=calculate_attendance).pack(pady=20)
